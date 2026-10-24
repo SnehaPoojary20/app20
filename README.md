@@ -10,9 +10,8 @@ The application helps the team:
 
 Built with **React**, **Python/FastAPI**, and **Docker**.
 
-- **Live application:** <VERCEL_OR_HEROKU_URL>
-- **Demo video:** <UNLISTED_YOUTUBE_URL>
-- **Challenge time spent:** <e.g., 14 hours>
+- **Live application:** https://app20-jup1jvx35-sneha-poojarys-projects.vercel.app/
+- **Challenge time spent:** 10 hours
 
 ---
 
