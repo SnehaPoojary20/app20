@@ -1,0 +1,68 @@
+.bc {
+  position: relative;
+  width: 100%;
+}
+.bc svg {
+  display: block;
+  overflow: visible;
+}
+.bc-grid {
+  stroke: var(--line);
+  stroke-dasharray: 2 5;
+}
+.bc-zero {
+  stroke: var(--line-strong);
+}
+.bc-axis {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.bc-axis.on {
+  fill: var(--red);
+  font-weight: 600;
+}
+.bc-bar {
+  fill: var(--red-soft);
+  transition: fill 0.15s, filter 0.15s;
+}
+.bc-bar.neg {
+  fill: #5a5a66;
+}
+.bc-bar.hover {
+  fill: var(--red);
+}
+.bc-bar.active {
+  fill: var(--red);
+  filter: drop-shadow(0 0 8px var(--red-glow));
+}
+.bc-marker {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 1.5;
+}
+.bc-tip {
+  position: absolute;
+  pointer-events: none;
+  min-width: 130px;
+  padding: 8px 10px;
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  background: rgba(8, 8, 10, 0.96);
+  box-shadow: 0 8px 30px rgba(255, 38, 56, 0.2);
+  display: grid;
+  gap: 2px;
+  font-size: 12px;
+}
+.bc-tip strong {
+  color: #fff;
+}
+.bc-tip span {
+  font-family: var(--mono);
+  color: var(--red);
+}
+.bc-tip em {
+  font-style: normal;
+  color: var(--muted);
+  font-size: 11px;
+}

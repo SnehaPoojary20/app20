@@ -1,0 +1,57 @@
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+.kpi {
+  position: relative;
+  padding: 18px 20px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(160deg, #0d0d11 0%, #050507 100%);
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.kpi:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 38, 56, 0.55);
+}
+.kpi.hot::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--red);
+  box-shadow: 0 0 18px var(--red);
+}
+.kpi h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.kpi-v {
+  margin: 10px 0 6px;
+  font-family: var(--mono);
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+.kpi.hot .kpi-v {
+  color: var(--red);
+}
+.kpi-v small {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+.kpi-n {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}

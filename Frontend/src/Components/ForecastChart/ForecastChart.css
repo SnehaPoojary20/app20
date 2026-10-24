@@ -1,0 +1,120 @@
+.fc {
+  position: relative;
+  width: 100%;
+}
+.fc svg {
+  display: block;
+  cursor: crosshair;
+}
+.fc-grid {
+  stroke: var(--line);
+  stroke-dasharray: 2 5;
+}
+.fc-axis {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.fc-unit {
+  fill: var(--red);
+}
+.fc-actual {
+  fill: none;
+  stroke: #f4f4f5;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  opacity: 0.92;
+}
+.fc-forecast {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px var(--red-glow));
+}
+.fc-band {
+  fill: rgba(255, 38, 56, 0.1);
+  stroke: rgba(255, 38, 56, 0.3);
+  stroke-dasharray: 3 4;
+}
+.fc-cursor {
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-dasharray: 3 3;
+}
+.fc-dot.actual {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2;
+}
+.fc-dot.forecast {
+  fill: var(--red);
+  stroke: #000;
+  stroke-width: 2;
+}
+.fc-tip {
+  position: absolute;
+  width: 196px;
+  padding: 10px 12px;
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  background: rgba(6, 6, 8, 0.96);
+  box-shadow: 0 10px 40px rgba(255, 38, 56, 0.22);
+  pointer-events: none;
+  font-size: 12px;
+}
+.fc-tip b {
+  display: block;
+  margin-bottom: 6px;
+  color: #fff;
+  font-family: var(--mono);
+  font-weight: 600;
+}
+.fc-tip p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+  color: var(--muted);
+}
+.fc-tip p span {
+  margin-left: auto;
+  color: #fff;
+  font-family: var(--mono);
+}
+.fc-tip p.err span {
+  color: var(--red);
+}
+.fc-tip small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted-2);
+  font-size: 10.5px;
+}
+.fc-legend {
+  position: absolute;
+  right: 18px;
+  bottom: -4px;
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.k {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 2px;
+}
+.k.red { background: var(--red); }
+.k.white { background: #f4f4f5; }
+.k.gap { background: rgba(255, 38, 56, 0.35); }
+.k.band { background: transparent; border: 1px dashed var(--red); }
+
+@media (max-width: 640px) {
+  .fc-legend {
+    position: static;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,57 @@
+.st {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 64px 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #050507;
+  text-align: center;
+  overflow: hidden;
+}
+.st p {
+  margin: 0;
+  color: #fff;
+}
+.st small {
+  color: var(--muted);
+}
+.st-scan {
+  position: absolute;
+  inset: 0 auto 0 -30%;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255, 38, 56, 0.2), transparent);
+  animation: scan 1.6s linear infinite;
+}
+@keyframes scan {
+  to { transform: translateX(450%); }
+}
+.st-x {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--red);
+  border-radius: 50%;
+  color: var(--red);
+  font-weight: 800;
+  box-shadow: 0 0 24px var(--red-glow);
+}
+.st-err h3 {
+  margin: 6px 0 0;
+}
+.st-err p {
+  max-width: 520px;
+  color: var(--muted);
+}
+.st button {
+  margin-top: 10px;
+  padding: 9px 22px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}

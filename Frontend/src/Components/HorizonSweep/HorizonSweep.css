@@ -1,0 +1,66 @@
+.hs-idle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px;
+  border: 1px dashed rgba(255, 38, 56, 0.4);
+  border-radius: 14px;
+}
+.hs-idle p {
+  flex: 1 1 320px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.hs-idle b {
+  color: #fff;
+}
+.hs-idle button,
+.hs-again {
+  padding: 10px 20px;
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  background: var(--red);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hs-again {
+  margin-top: 12px;
+  background: transparent;
+  color: var(--red);
+  font-size: 12.5px;
+}
+.hs-again:hover {
+  background: rgba(255, 38, 56, 0.12);
+}
+.hs-prog {
+  position: relative;
+  height: 34px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.hs-prog div {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255, 38, 56, 0.2), var(--red));
+  transition: width 0.4s ease;
+}
+.hs-prog span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.hs-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}

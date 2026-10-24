@@ -1,0 +1,17 @@
+.ed-q {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.ed-q b {
+  margin-left: 4px;
+  color: var(--red);
+  font-family: var(--mono);
+}
+.ed-q .mut {
+  margin-left: auto;
+  color: var(--muted-2);
+}

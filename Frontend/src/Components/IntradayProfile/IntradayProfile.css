@@ -1,0 +1,11 @@
+.ip-note {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-left: 2px solid var(--red);
+  background: rgba(255, 38, 56, 0.06);
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.ip-note b {
+  color: #fff;
+}
