@@ -16,6 +16,8 @@ class Settings(BaseSettings):
         "http://localhost:5173"
     ]
 
+    forecast_lookback_days: int = 14
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
