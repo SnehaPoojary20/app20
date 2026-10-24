@@ -1,242 +1,498 @@
-# UK Wind Forecast & Procurement Analysis
+# UK Day-Ahead Wind Forecast & Accuracy Portal
 
-A full-stack web application that helps UK energy procurement teams analyze wind generation forecasts available before day-ahead purchasing decisions and evaluate forecast accuracy against actual generation.
+A full-stack decision-support prototype for a UK energy utility’s day-ahead power procurement team.
 
-## 1. Problem Statement
+The application helps the team:
 
-UK energy utilities must procure sufficient electricity to meet consumer demand. Since wind generation is weather-dependent, actual generation may differ from forecasts.
+1. Review the latest available national wind-generation forecasts before making day-ahead purchase decisions.
+2. Quantify forecast error against actual wind generation for January 2026.
+3. Understand when forecasts are likely to be uncertain, so procurement decisions can account for forecast risk.
 
-This application helps procurement teams:
-- View wind generation forecasts available before the relevant day-ahead decision cutoff.
-- Compare forecasts with actual wind generation.
-- Quantify forecast errors to understand uncertainty when planning electricity procurement.
+Built with **React**, **Python/FastAPI**, and **Docker**.
 
-**Scope:** National-level wind generation data from Elexon BMRS for January 2026, using 30-minute delivery periods. No external generation, demand, weather, or market-price data is included.
+- **Live application:** <VERCEL_OR_HEROKU_URL>
+- **Demo video:** <UNLISTED_YOUTUBE_URL>
+- **Challenge time spent:** <e.g., 14 hours>
 
-## 2. Features
+---
 
-- **Forecast analysis:** Identify the latest eligible wind forecast for each delivery period based on its publication timestamp and the selected decision cutoff.
-- **Actual vs. forecast comparison:** Match forecast and actual generation by `startTime`.
-- **Accuracy metrics:** Calculate Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and forecast bias.
-- **Data handling:** Account for timestamps, missing observations, and API errors.
-- **Interactive dashboard:** Present forecast data and analysis through a React interface.
+## Product overview
 
-## 3. Data Sources
+A UK utility must procure additional electricity beyond expected renewable generation to meet consumer demand. Wind generation is weather-dependent, and day-ahead market decisions must be made before delivery day. Therefore, the team needs a clear view of the latest wind forecast and a quantitative understanding of historical forecast accuracy.
 
-The application uses the [Elexon BMRS API](https://bmrs.elexon.co.uk/api-documentation).
+This portal focuses on **national-level wind generation** using only Elexon BMRS data:
 
-| Dataset | Purpose | Relevant fields |
+- **Actual wind generation:** `FUELHH`, filtered to `fuelType = WIND`
+- **Wind generation forecasts:** `WINDFOR`
+- **Decision window:** January 2026
+- **Resolution:** 30-minute settlement periods
+
+The application does not make trading recommendations. Its purpose is to make the available forecast and its historical reliability easier to understand before a human procurement decision is made.
+
+---
+
+## Key features
+
+### 1. Latest forecast view
+
+- Displays the latest available `WINDFOR` forecast for the selected delivery period.
+- Shows forecast generation in MW at 30-minute resolution.
+- Clearly indicates the forecast `publishTime`, so users know when the forecast was created.
+- Allows users to inspect the forecast across the selected day.
+
+### 2. Forecast-versus-actual comparison
+
+- Aligns actual `FUELHH` wind generation with forecasted generation by `startTime`.
+- Shows both series on a time-series chart.
+- Highlights periods where the forecast overestimated or underestimated actual wind generation.
+
+### 3. Forecast accuracy metrics
+
+For January 2026, the application calculates forecast accuracy using standard error metrics:
+
+| Metric | Meaning | Why it matters |
 |---|---|---|
-| [FUELHH](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/FUELHH/stream) | Actual half-hourly wind generation | `startTime`, `generation`, `fuelType=WIND` |
-| [WINDFOR](https://bmrs.elexon.co.uk/api-documentation/endpoint/datasets/WINDFOR/stream) | Wind generation forecasts | `startTime`, `publishTime`, `generation` |
+| MAE | Mean absolute error | Average size of forecast error in MW |
+| RMSE | Root mean squared error | Penalises larger errors more heavily |
+| MAPE | Mean absolute percentage error | Relative error, useful for comparing periods |
+| Bias | Mean signed error | Shows whether forecasts tend to over- or under-predict |
 
-`startTime` identifies the delivery period, while `publishTime` identifies when a forecast became available. Historical forecast publications are necessary to reconstruct what was known at the decision cutoff; the latest forecast available today is not a substitute.
+<If implemented, keep this section. Otherwise remove it.>
 
-## 4. Architecture
+- Metrics are calculated only where both forecast and actual values are available.
+- The application separates missing data from zero generation.
+- Users can view overall monthly accuracy and daily breakdowns.
 
-The project follows a **layered architecture with separation of concerns, MVC-inspired principles, and clean code practices**.
+### 4. Decision-support view
+
+<Only include if implemented.>
+
+- Shows the latest forecast alongside historical forecast error.
+- Helps the user distinguish between a high-confidence forecast and one where recent forecasts have shown larger deviations.
+- Presents uncertainty as a supporting signal, not as an automated procurement recommendation.
+
+---
+
+## Architecture
 
 ```text
-React Frontend
-      │ HTTP / JSON
-      ▼
-FastAPI Routes / Controllers
-      ▼
-Schemas and Validation
-      ▼
-Service Layer
-  ├── Elexon Data Retrieval
-  ├── Forecast Selection
-  └── Accuracy Analytics
-      ▼
-Utilities and Timestamp Handling
-      ▼
-Elexon BMRS API
+React frontend
+        |
+        | HTTP / JSON
+        v
+FastAPI backend
+        |
+        |-- Elexon BMRS API client
+        |-- Forecast / actual data service
+        |-- Accuracy calculation service
+        |-- Pydantic schemas and validation
+        |
+        v
+Elexon BMRS APIs
+        |-- /datasets/FUELHH/stream
+        |-- /datasets/WINDFOR/stream
 ```
 
-### Backend structure
+### Backend
+
+- **Framework:** FastAPI
+- **Language:** Python
+- **Data validation:** Pydantic
+- **External API client:** `httpx`
+- **Testing:** `pytest`
+- **Containerisation:** Docker
+
+The backend is organised so that API routes remain thin and business logic is separated into services:
 
 ```text
-Backend/
-├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── config.py
+backend/
+├── app/
+│   ├── main.py                  # FastAPI application entry point
+│   ├── core/
+│   │   └── config.py            # Environment and application settings
 │   ├── api/
-│   │   ├── __init__.py
-│   │   └── routes.py
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   └── forecast.py
+│   │   └── routes/
+│   │       ├── forecasts.py     # Latest forecast endpoints
+│   │       └── accuracy.py      # Forecast accuracy endpoints
 │   ├── services/
-│   │   ├── __init__.py
-│   │   ├── elexon_service.py
-│   │   ├── forecast_service.py
-│   │   └── analytics_service.py
-│   └── utils/
-│       ├── __init__.py
-│       └── datetime_utils.py
-├── tests/
+│   │   ├── elexon_client.py     # Elexon API integration
+│   │   ├── forecast_service.py  # Forecast retrieval and transformation
+│   │   └── accuracy_service.py  # Error metric calculations
+│   ├── schemas/
+│   │   └── models.py            # Request and response models
+│   └── tests/
+│       ├── test_forecast_service.py
+│       └── test_accuracy_service.py
 ├── requirements.txt
 ├── Dockerfile
-└── .dockerignore
+└── .env.example
+```
 
-Frontend/
+### Frontend
+
+- **Framework:** React
+- **Build tool:** Vite
+- **Charts:** <Recharts / Chart.js / other — use only what you actually used>
+- **HTTP client:** Axios / Fetch
+- **Containerisation:** Docker
+
+```text
+frontend/
 ├── src/
+│   ├── api/
+│   │   └── client.js            # Backend API client
 │   ├── components/
+│   │   ├── ForecastChart.jsx
+│   │   ├── ForecastTable.jsx
+│   │   ├── AccuracySummary.jsx
+│   │   └── ErrorState.jsx
 │   ├── pages/
-│   ├── services/
+│   │   ├── Dashboard.jsx
+│   │   └── ForecastAccuracy.jsx
+│   ├── hooks/
+│   │   └── useForecastData.js
 │   ├── App.jsx
 │   └── main.jsx
 ├── package.json
-└── Dockerfile
-
-docker-compose.yml
-.gitignore
-README.md
+├── Dockerfile
+└── .env.example
 ```
 
-*The structure above describes the intended organization. Keep it synchronized with the files actually present in the repository.*
+---
 
-### Responsibilities
+## Data sources
 
-- **API routes:** Handle HTTP requests, validate parameters, and return responses.
-- **Schemas:** Define and validate request and response data using Pydantic.
-- **Elexon service:** Retrieves actual and forecast records from the external API.
-- **Forecast service:** Selects the latest forecast published before the applicable decision cutoff for each delivery period.
-- **Analytics service:** Matches actuals and forecasts and calculates accuracy metrics.
-- **Utilities:** Handle reusable timestamp and timezone operations.
-- **React frontend:** Displays forecasts, comparisons, and analytical results.
+### Actual wind generation — `FUELHH`
 
-This separation keeps business logic independent of HTTP handling and presentation, improving maintainability and testability.
+The application uses Elexon’s half-hourly generation-outturn dataset and filters records where:
 
-## 5. Forecast Evaluation
+```text
+fuelType = "WIND"
+```
 
-For each delivery period, the application should:
+Relevant fields:
 
-1. Determine the applicable procurement decision cutoff.
-2. Select forecast records published at or before that cutoff.
-3. Choose the latest eligible publication for each `startTime`.
-4. Match the selected forecast with actual generation for the same delivery period.
-5. Calculate error metrics using valid matched observations.
+- `startTime`: target half-hour period
+- `generation`: actual wind generation in MW
+- `publishTime`: publication timestamp
+- `settlementDate` and `settlementPeriod`: UK settlement identifiers
 
-The error convention is:
+Elexon describes `FUELHH` as half-hourly generation outturn by fuel type, with values representing average MW over each 30-minute period. [15]
 
-`Error = Forecast − Actual`
+### Forecast wind generation — `WINDFOR`
 
-- **MAE:** Average absolute forecast error.
-- **RMSE:** Square root of the average squared forecast error; larger errors have more influence.
-- **Bias:** Average signed error. Positive values indicate overforecasting and negative values indicate underforecasting.
+The application uses Elexon’s wind-generation forecast dataset.
 
-Timestamps must be handled consistently across UTC and UK local time, including daylight-saving transitions. Missing records must not be silently treated as zero generation.
+Relevant fields:
 
-Forecast accuracy supports informed decisions but does not, by itself, determine the exact amount of electricity to procure. Demand and other supply sources are outside this project's scope.
+- `startTime`: target half-hour period
+- `publishTime`: time the forecast was published
+- `generation`: forecast wind generation in MW
 
-## 6. Technology Stack
+The `WINDFOR` endpoint supports filtering by forecast publication time; when no publication-time filter is supplied, it returns the latest published forecast. [12]
 
-- **Frontend:** React
-- **Backend:** Python, FastAPI, Uvicorn
-- **HTTP client:** HTTPX
-- **Validation and configuration:** Pydantic Settings
-- **Analytics:** NumPy
-- **Testing:** Pytest
-- **Containerization:** Docker and Docker Compose
-- **Data source:** Elexon BMRS API
+---
 
-## 7. Getting Started
+## API design
+
+### `GET /api/v1/health`
+
+Returns service health information.
+
+**Response**
+
+```json
+{
+  "status": "ok"
+}
+```
+
+### `GET /api/v1/forecasts/latest`
+
+Returns the latest available wind forecast for a requested date.
+
+**Query parameters**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `date` | string | Delivery date in `YYYY-MM-DD` format |
+
+**Example response**
+
+```json
+{
+  "date": "2026-01-15",
+  "publishTime": "2026-01-14T17:30:00Z",
+  "points": [
+    {
+      "startTime": "2026-01-15T00:00:00Z",
+      "generation": 8420.0
+    }
+  ]
+}
+```
+
+### `GET /api/v1/accuracy/summary`
+
+Returns forecast-accuracy metrics for January 2026.
+
+**Example response**
+
+```json
+{
+  "period": "2026-01",
+  "matchedPoints": 1428,
+  "mae": 1832.4,
+  "rmse": 2510.7,
+  "mape": 21.8,
+  "bias": -412.3
+}
+```
+
+<Update the endpoint names, parameters, and response examples to match your actual implementation.>
+
+---
+
+## Accuracy methodology
+
+The application aligns forecast and actual records using `startTime`.
+
+For each matched half-hour:
+
+```text
+error = forecast - actual
+absolute_error = abs(error)
+```
+
+Then:
+
+```text
+MAE  = mean(abs(error))
+RMSE = sqrt(mean(error^2))
+MAPE = mean(abs(error) / abs(actual)) * 100
+Bias = mean(error)
+```
+
+### Interpretation
+
+- A positive bias means forecasts tended to overestimate wind generation.
+- A negative bias means forecasts tended to underestimate wind generation.
+- RMSE greater than MAE indicates the presence of larger individual errors.
+- MAPE can be unstable when actual generation is close to zero, so the application excludes or separately handles near-zero actual values.
+
+<Adjust this only if your implementation handles zero or missing values differently.>
+
+---
+
+## Assumptions and scope decisions
+
+The challenge specification intentionally leaves some product decisions open. The following assumptions were made:
+
+1. **“Latest forecast” means the most recent `publishTime` available for each target `startTime`.**
+2. **Accuracy is evaluated only where both forecast and actual values exist for the same `startTime`.**
+3. **January 2026 is treated as the analysis window for both datasets.**
+4. **The application uses national wind generation only**, as requested; it does not incorporate demand, prices, interconnectors, or regional wind data.
+5. **The product supports decision-making but does not automate procurement decisions.**
+
+---
+
+## Known limitations
+
+- The application depends on the availability and response shape of the public Elexon BMRS APIs.
+- Forecast availability may vary by delivery period and publication time.
+- MAPE is less meaningful when actual generation is near zero.
+- This is a first-version prototype; it does not include authentication, role-based access, persistent user preferences, or automated alerting.
+- The application focuses on national wind generation and does not model demand, thermal procurement cost, market prices, or portfolio optimisation.
+
+---
+
+## What I would build next
+
+With additional time, I would prioritise:
+
+1. **Forecast vintage comparison:** Compare forecasts published at different times for the same delivery period to understand how accuracy improves closer to delivery.
+2. **Daily and hourly error patterns:** Identify whether forecast errors are concentrated at particular times of day.
+3. **Confidence bands:** Convert historical error distributions into forecast uncertainty ranges.
+4. **Procurement scenario view:** Show potential additional procurement requirement under low, median, and high wind-generation scenarios.
+5. **Caching and background refresh:** Cache Elexon responses and schedule periodic refreshes to reduce API load and improve responsiveness.
+6. **More extensive integration tests:** Add contract tests for Elexon response variations and frontend end-to-end tests.
+
+---
+
+## Getting started
 
 ### Prerequisites
 
-Install Python, Node.js/npm, and Docker Desktop.
+- Docker and Docker Compose
+- Git
 
-### Run the backend
+### Run with Docker
 
-```powershell
-cd Backend
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python -m uvicorn src.main:app --reload
+```bash
+git clone [https://github.com/](https://github.com/)<your-username>/<anonymous-repo-name>.git
+cd <anonymous-repo-name>
+
+docker compose up --build
 ```
 
-Backend URL: `http://127.0.0.1:8000`
+Then open:
 
-Interactive API documentation: `http://127.0.0.1:8000/docs`
+```text
+http://localhost:5173
+```
 
-The Uvicorn command assumes `Backend/src/main.py` contains a FastAPI instance named `app`.
+The frontend is configured to call the backend at:
 
-### Run the frontend
+```text
+http://localhost:8000
+```
 
-Open a second terminal:
+### Environment variables
 
-```powershell
-cd Frontend
+Copy the example environment files:
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+**Backend — `backend/.env.example`**
+
+```env
+ELEXON_BASE_URL=[https://data.elexon.co.uk/bmrs/api/v1](https://data.elexon.co.uk/bmrs/api/v1)
+CORS_ORIGINS=http://localhost:5173
+```
+
+**Frontend — `frontend/.env.example`**
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+```
+
+<Use the exact base URL, variable names, and ports implemented in your code.>
+
+---
+
+## Running locally without Docker
+
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+### Frontend
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Open the local URL printed by the frontend development server. Configure the frontend API base URL to point to the backend.
+---
 
-### Run with Docker
-
-From the project root:
+## Running tests
 
 ```bash
-docker compose up --build
+cd backend
+pytest
 ```
 
-Stop the containers with:
+<Only include frontend test instructions if you implemented tests.>
 
-```bash
-docker compose down
+---
+
+## Docker services
+
+| Service | Description | Local URL |
+|---|---|---|
+| `frontend` | React application served by Vite / Nginx | `http://localhost:5173` |
+| `backend` | FastAPI application | `http://localhost:8000` |
+
+---
+
+## Deployment
+
+The sample application is deployed at:
+
+```text
+<VERCEL_OR_HEROKU_URL>
 ```
 
-Docker Compose requires a valid `docker-compose.yml` with correctly configured frontend and backend services.
+<Explain only what you actually deployed. For example: “The React frontend is deployed on Vercel, and the FastAPI backend is deployed on Render.”>
 
-### Run tests
+---
 
-From the `Backend` directory, with the virtual environment activated:
+## AI tools used
 
-```powershell
-python -m pytest -v
+AI tools were used to assist with development, as permitted by the challenge instructions.
+
+Specifically, AI was used for:
+
+- Researching the Elexon BMRS API documentation
+- Drafting and refining implementation code
+- Reviewing API design and error handling
+- Preparing documentation and this README
+
+All implementation decisions, testing, debugging, and final review were performed by me.
+
+<Update this section to accurately reflect the tools you used and the extent of assistance.>
+
+---
+
+## Demo video
+
+The demo video is available here:
+
+```text
+<UNLISTED_YOUTUBE_URL>
 ```
 
-## 8. Deployment
+### Part 1 — Client presentation
 
-Deploy the React frontend to [Vercel](https://vercel.com/) and the FastAPI backend to a Docker-compatible hosting provider.
+- Business problem and user need
+- How the portal supports day-ahead wind procurement
+- Latest forecast view
+- Forecast-versus-actual comparison
+- Quantified forecast accuracy
+- Product limitations and next steps
 
-Configure the deployed frontend with the backend API URL, and configure backend CORS to allow the deployed frontend origin.
+### Part 2 — Technical review
 
-- **Live application:** [Add deployed frontend URL]
-- **Backend API:** [Add deployed backend URL]
-- **GitHub repository:** [Add public repository URL]
-- **Demo video:** [Add unlisted YouTube URL]
+- System architecture
+- Backend and frontend structure
+- Elexon API integration
+- Data alignment and accuracy calculations
+- Error handling and validation
+- Docker setup
+- Testing approach
+- Trade-offs and future improvements
 
-Verify all submitted links in an incognito browser window.
+---
 
-## 9. AI Tool Disclosure
+## Repository structure
 
-AI tools, including **ChatGPT**, were used to assist with requirement analysis, architecture planning, code development, debugging, and documentation.
-
-All generated code and suggestions should be reviewed and tested against the actual implementation and Elexon API behavior.
-
-## 10. Limitations and Future Improvements
-
-This pilot focuses exclusively on national wind generation forecasts and actuals for January 2026.
-
-Potential future improvements include demand integration, additional generation sources, forecast-horizon comparisons, downloadable reports, and enhanced caching and monitoring.
-
-## 11. Submission Checklist
-
-- [ ] Public GitHub repository with an anonymous-style name.
-- [ ] README and directory structure match the implementation.
-- [ ] Frontend and backend deployed and accessible.
-- [ ] Docker build and startup verified.
-- [ ] Forecast selection and accuracy calculations tested.
-- [ ] Unlisted YouTube demo uploaded, maximum 10 minutes.
-- [ ] Customer pitch and technical review each within 5 minutes.
-- [ ] Submission form completed.
-- [ ] All submitted URLs verified in incognito mode.
+```text
+.
+├── backend/
+│   ├── app/
+│   ├── tests/
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── .env.example
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   ├── Dockerfile
+│   └── .env.example
+├── docker-compose.yml
+├── README.md
+└── .gitignore
+```
 
 
 
