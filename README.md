@@ -419,7 +419,7 @@ pytest
 The sample application is deployed at:
 
 ```text
-<VERCEL_OR_HEROKU_URL>
+https://app20-jup1jvx35-sneha-poojarys-projects.vercel.app/
 ```
 
 <Explain only what you actually deployed. For example: “The React frontend is deployed on Vercel, and the FastAPI backend is deployed on Render.”>
