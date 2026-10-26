@@ -443,14 +443,6 @@ All implementation decisions, testing, debugging, and final review were performe
 
 ---
 
-## Demo video
-
-The demo video is available here:
-
-```text
-<UNLISTED_YOUTUBE_URL>
-```
-
 ### Part 1 — Client presentation
 
 - Business problem and user need
